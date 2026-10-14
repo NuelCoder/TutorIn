@@ -1,0 +1,42 @@
+services:
+  # 1. Your Spring Boot Application
+  tutor_in:
+    build: .
+    container_name: tutorin-app
+    ports:
+      - "8080:8080"
+    environment:
+      # These variables must be in your .env file
+      # Notice we use 'postgres' as the host here, not 'localhost', because of the Docker network
+      - DB_URL=${DB_URL}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+    depends_on:
+      - postgres
+    networks:
+      - app-network
+
+  # 2. PostgreSQL Database
+  postgres:
+    image: 'postgres:15-alpine'
+    container_name: tutorin-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      # These variables initialize the database on first run
+      POSTGRES_DB: tutor_in
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      # Maps local storage to the container so you don't lose data when the container stops
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  # Named volume for persistent database storage
+  postgres_data:
