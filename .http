@@ -1,0 +1,54 @@
+### Variables (Replace with the UUID printed in your console on startup)
+@tutorId = REPLACE_WITH_TUTOR_UUID_FROM_CONSOLE
+@slotId = REPLACE_WITH_SLOT_UUID_FROM_CREATION
+
+### 1. Create a new slot (201 Created)
+POST http://localhost:8080/api/v1/slots
+Content-Type: application/json
+
+{
+  "tutorId": "{{tutorId}}",
+  "startTime": "2026-12-01T10:00:00Z",
+  "endTime": "2026-12-01T12:00:00Z"
+}
+
+### 2. Validation Error - End time before start time (400 Bad Request)
+POST http://localhost:8080/api/v1/slots
+Content-Type: application/json
+
+{
+  "tutorId": "{{tutorId}}",
+  "startTime": "2026-12-01T14:00:00Z",
+  "endTime": "2026-12-01T13:00:00Z"
+}
+
+### 3. Overlap Error - Same time (400 Bad Request)
+POST http://localhost:8080/api/v1/slots
+Content-Type: application/json
+
+{
+  "tutorId": "{{tutorId}}",
+  "startTime": "2026-12-01T10:30:00Z",
+  "endTime": "2026-12-01T11:30:00Z"
+}
+
+### 4. Get all slots for a tutor (200 OK)
+GET http://localhost:8080/api/v1/slots/tutor/{{tutorId}}
+
+### 5. Get a specific slot (200 OK)
+GET http://localhost:8080/api/v1/slots/{{slotId}}
+
+### 6. Update a slot (200 OK)
+PUT http://localhost:8080/api/v1/slots/{{slotId}}
+Content-Type: application/json
+
+{
+  "startTime": "2026-12-01T14:00:00Z",
+  "endTime": "2026-12-01T16:00:00Z"
+}
+
+### 7. Delete a slot (204 No Content)
+DELETE http://localhost:8080/api/v1/slots/{{slotId}}
+
+### 8. Not Found Error (404 Not Found)
+GET http://localhost:8080/api/v1/slots/00000000-0000-0000-0000-000000000000
