@@ -1,6 +1,7 @@
 package com.TutorIn.entity;
 
 import com.TutorIn.enums.Role;
+import com.TutorIn.validation.ValidCountry;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -42,6 +43,10 @@ public class Tutor implements UserDetails {
     @Email(message = "Please provide a valid email!")
     private String email;
 
+    @Column(nullable = false)
+    @NotBlank(message = "Please provide your gender")
+    private String gender;
+
     @Pattern(
             regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+=\\-{}\\[\\]:;\"'<>,.?/]).{8,}$",
             message = "Password must be at least 8 characters long and contain uppercase, lowercase, digit, and special character"
@@ -53,6 +58,7 @@ public class Tutor implements UserDetails {
 
     @Column(nullable = false)
     @NotBlank(message = "Please provide a country")
+    @ValidCountry(message = "Please provide a valid, recognized country name.")
     private String country;
 
     @Enumerated(EnumType.STRING)
@@ -66,18 +72,26 @@ public class Tutor implements UserDetails {
     @UpdateTimestamp
     private OffsetDateTime updatedAt;
 
+    @Builder.Default
     private boolean active = true;
 
+    @Builder.Default
+    private boolean deleted = false;
+
     @Column(nullable = false)
+    @Builder.Default
     private boolean suspended = false;
 
     @Column(name = "is_account_non_locked", nullable = false)
+    @Builder.Default
     private boolean accountNonLocked = true;
 
     @Column(name = "is_account_non_expired", nullable = false)
+    @Builder.Default
     private boolean accountNonExpired = true;
 
     @Column(name = "is_credentials_non_expired", nullable = false)
+    @Builder.Default
     private boolean credentialsNonExpired = true;
 
     @OneToMany(mappedBy = "tutor", cascade = CascadeType.ALL)

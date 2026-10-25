@@ -45,4 +45,7 @@ public interface TutorSubjectRepository extends JpaRepository<TutorSubject, UUID
       AND t.active = true
 """)
     List<TutorSubject> findActiveTutorSubjectsBySubjectTitle(@Param("subjectTitle") String subjectTitle);
+
+    // Add this inside TutorSubjectRepository
+    boolean existsBySubject_SubjectId(UUID subjectId);
 }

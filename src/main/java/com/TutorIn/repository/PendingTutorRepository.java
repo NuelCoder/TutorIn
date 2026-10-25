@@ -4,8 +4,12 @@ import com.TutorIn.entity.PendingTutor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface PendingTutorRepository extends JpaRepository<PendingTutor, UUID> {
+    Optional<PendingTutor> findByEmail(String email);
+    boolean existsByEmail(String email);
+    Optional<PendingTutor>findByPendingTutorId(UUID pendingTutorId);
 }

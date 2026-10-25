@@ -5,13 +5,14 @@ import com.TutorIn.dto.SlotResponse;
 import com.TutorIn.dto.SlotUpdateRequest;
 import com.TutorIn.entity.AvailabilitySlot;
 import com.TutorIn.entity.Tutor;
+import com.TutorIn.exceptions.AccessDeniedException;
+import com.TutorIn.exceptions.BadRequestException;
 import com.TutorIn.repository.AvailabilitySlotRepository;
 import com.TutorIn.repository.TutorRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -19,18 +20,20 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class AvailabilitySlotService {
+
     private final AvailabilitySlotRepository slotRepository;
     private final TutorRepository tutorRepository;
 
     @Transactional
-    public SlotResponse createSlot(SlotCreateRequest request) {
+    @PreAuthorize("hasRole('TUTOR')")
+    public SlotResponse createSlot(SlotCreateRequest request, String tutorEmail) {
         validateTimeLogic(request.startTime(), request.endTime());
 
-        Tutor tutor = tutorRepository.findById(request.tutorId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tutor not found"));
+        Tutor tutor = tutorRepository.findByEmail(tutorEmail)
+                .orElseThrow(() -> new BadRequestException("Tutor not found"));
 
         if (slotRepository.countOverlappingSlots(tutor.getTutorId(), request.startTime(), request.endTime()) > 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Time slot overlaps with existing schedule");
+            throw new BadRequestException("Time slot overlaps with existing schedule");
         }
 
         AvailabilitySlot slot = new AvailabilitySlot();
@@ -43,35 +46,42 @@ public class AvailabilitySlotService {
     }
 
     @Transactional(readOnly = true)
+    @PreAuthorize("isAuthenticated()")
     public List<SlotResponse> getTutorSlots(UUID tutorId) {
         if (!tutorRepository.existsById(tutorId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Tutor not found");
+            throw new BadRequestException("Tutor not found");
         }
         return slotRepository.findByTutor_TutorIdOrderByStartTimeAsc(tutorId)
                 .stream().map(this::mapToResponse).toList();
     }
 
     @Transactional(readOnly = true)
+    @PreAuthorize("isAuthenticated()")
     public SlotResponse getSlot(UUID slotId) {
         AvailabilitySlot slot = slotRepository.findById(slotId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Slot not found"));
+                .orElseThrow(() -> new BadRequestException("Slot not found"));
         return mapToResponse(slot);
     }
 
     @Transactional
-    public SlotResponse updateSlot(UUID slotId, SlotUpdateRequest request) {
+    @PreAuthorize("hasRole('TUTOR')")
+    public SlotResponse updateSlot(UUID slotId, SlotUpdateRequest request, String tutorEmail) {
         validateTimeLogic(request.startTime(), request.endTime());
 
         AvailabilitySlot slot = slotRepository.findById(slotId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Slot not found"));
+                .orElseThrow(() -> new BadRequestException("Slot not found"));
+
+        if (!slot.getTutor().getEmail().equals(tutorEmail)) {
+            throw new AccessDeniedException("You do not have permission to modify this slot");
+        }
 
         if (slot.isBooked()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot update a slot that is already booked");
+            throw new BadRequestException("Cannot update a slot that is already booked");
         }
 
         if (slotRepository.countOverlappingSlotsExcludingSelf(
                 slot.getTutor().getTutorId(), slotId, request.startTime(), request.endTime()) > 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Updated time slot overlaps with existing schedule");
+            throw new BadRequestException("Updated time slot overlaps with existing schedule");
         }
 
         slot.setStartTime(request.startTime());
@@ -81,12 +91,17 @@ public class AvailabilitySlotService {
     }
 
     @Transactional
-    public void deleteSlot(UUID slotId) {
+    @PreAuthorize("hasRole('TUTOR')")
+    public void deleteSlot(UUID slotId, String tutorEmail) {
         AvailabilitySlot slot = slotRepository.findById(slotId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Slot not found"));
+                .orElseThrow(() -> new BadRequestException("Slot not found"));
+
+        if (!slot.getTutor().getEmail().equals(tutorEmail)) {
+            throw new AccessDeniedException("You do not have permission to delete this slot");
+        }
 
         if (slot.isBooked()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot delete a booked slot. Cancel the session first.");
+            throw new BadRequestException("Cannot delete a booked slot. Cancel the session first.");
         }
 
         slotRepository.delete(slot);
@@ -94,7 +109,7 @@ public class AvailabilitySlotService {
 
     private void validateTimeLogic(java.time.OffsetDateTime start, java.time.OffsetDateTime end) {
         if (!end.isAfter(start)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "End time must be after start time");
+            throw new BadRequestException("End time must be after start time");
         }
     }
 
@@ -107,5 +122,4 @@ public class AvailabilitySlotService {
                 slot.isBooked()
         );
     }
-
 }

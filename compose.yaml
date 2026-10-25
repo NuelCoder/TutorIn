@@ -1,20 +1,22 @@
+version: '3.8'
+
 services:
   # 1. Your Spring Boot Application
-  tutor_in:
-    build: .
-    container_name: tutorin-app
-    ports:
-      - "8080:8080"
-    environment:
-      # These variables must be in your .env file
-      # Notice we use 'postgres' as the host here, not 'localhost', because of the Docker network
-      - DB_URL=${DB_URL}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-    depends_on:
-      - postgres
-    networks:
-      - app-network
+#  tutor_in:
+#    build: .
+#    container_name: tutorin-app
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      - DB_URL=${DB_URL}
+#      - DB_USER=${DB_USERNAME}
+#      - DB_PASSWORD=${DB_PASSWORD}
+#    depends_on:
+#      - postgres
+#      - redis
+#      - mailhog
+#    networks:
+#      - app-network
 
   # 2. PostgreSQL Database
   postgres:
@@ -23,13 +25,58 @@ services:
     ports:
       - "5432:5432"
     environment:
-      # These variables initialize the database on first run
       POSTGRES_DB: tutor_in
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
-      # Maps local storage to the container so you don't lose data when the container stops
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  # 3. Redis Cache
+  redis:
+    image: 'redis:alpine'
+    container_name: tutorin-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+  # 4. MailHog (Local SMTP Server)
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: tutorin-mailhog
+    ports:
+      - "1025:1025" # The SMTP port Spring Boot will connect to
+      - "8025:8025" # The Web UI to view your emails (http://localhost:8025)
+    networks:
+      - app-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.2
+    container_name: tutorin-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - app-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.3.2
+    container_name: tutorin-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     networks:
       - app-network
 

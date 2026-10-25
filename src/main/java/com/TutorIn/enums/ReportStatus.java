@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum ReportStatus {
     PENDING("PENDING"),
-    REVIEWING("REVIEWING"),
+    IN_REVIEW("IN_REVIEW"),
     RESOLVED("RESOLVED"),
     DISMISSED("DISMISSED");
 

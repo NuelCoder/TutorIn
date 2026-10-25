@@ -58,10 +58,17 @@ public class Admin implements UserDetails {
     private OffsetDateTime updatedAt;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean isActive = true;
 
+    @Builder.Default
+    private boolean deleted = false;
+
+    @Builder.Default
     boolean isAccountNonExpired = true;
+    @Builder.Default
     boolean isAccountNonLocked = true;
+    @Builder.Default
     boolean isCredentialsNonExpired = true;
 
     @Override

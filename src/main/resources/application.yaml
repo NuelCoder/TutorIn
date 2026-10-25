@@ -2,6 +2,10 @@ spring:
   application:
     name: TutorIn
 
+  # Controls which email service is active. Change to 'mailtrap' to test live.
+  profiles:
+    active: ${SPRING_ACTIVE_PROFILE:dev}
+
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -16,6 +20,67 @@ spring:
       hibernate:
         format_sql: true
 
+  data:
+    redis:
+      url: ${REDIS_URL:redis://localhost:6379}
+
+  kafka:
+    consumer:
+      bootstrap-servers: ${KAFKA_URL:localhost:9092}
+      group-id: tutorin-email-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.TutorIn.dto"
+
+    producer:
+      bootstrap-servers: ${KAFKA_URL:localhost:9092}
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
 server:
   port: 8080
 
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION}
+
+app:
+  cookie:
+    secure: ${COOKIE_SECURE:false}
+    same-site: ${COOKIE_SAME_SITE:Lax}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  mail:
+    host: localhost
+    port: 1025
+    username: ""
+    password: ""
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: mailtrap
+  mail:
+    host: sandbox.smtp.mailtrap.io
+    port: 2525
+    username: ${MAILTRAP_USERNAME}
+    password: ${MAILTRAP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true

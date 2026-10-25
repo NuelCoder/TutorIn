@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum RoleType {
-    STUDENT("Student"),
+    USER("User"),
     TUTOR("Tutor");
 
     private final String displayName;
