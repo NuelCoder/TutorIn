@@ -16,6 +16,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class PendingUserDTO {
 
+    @NotBlank(message = "Please provide a name")
     private String name;
 
     @NotBlank(message = "Please provide an email")
@@ -33,6 +34,6 @@ public class PendingUserDTO {
     private String gender;
 
 
-    @NotBlank(message = "Please provide a password")
+    @NotBlank(message = "Please provide a country")
     private String country;
 }
