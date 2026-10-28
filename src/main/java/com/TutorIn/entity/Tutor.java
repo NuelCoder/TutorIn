@@ -24,7 +24,9 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
-@Table(name = "tutors")
+@Table(name = "tutors", indexes = {
+        @Index(name = "idx_tutor_email", columnList = "email")
+})
 @AllArgsConstructor
 @NoArgsConstructor
 public class Tutor implements UserDetails {
@@ -47,10 +49,6 @@ public class Tutor implements UserDetails {
     @NotBlank(message = "Please provide your gender")
     private String gender;
 
-    @Pattern(
-            regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+=\\-{}\\[\\]:;\"'<>,.?/]).{8,}$",
-            message = "Password must be at least 8 characters long and contain uppercase, lowercase, digit, and special character"
-    )
     @Column(nullable = false)
     @NotBlank(message = "Please provide a password")
     @JsonIgnore

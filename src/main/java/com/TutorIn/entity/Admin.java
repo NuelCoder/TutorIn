@@ -18,7 +18,9 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "admins")
+@Table(name = "admins", indexes = {
+        @Index(name = "idx_admin_email", columnList = "admin_email")
+})
 @Getter
 @Setter
 @Builder
@@ -38,10 +40,6 @@ public class Admin implements UserDetails {
     @NotBlank(message = "Please provide your email")
     private String adminEmail;
 
-    @Pattern(
-            regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+=\\-{}\\[\\]:;\"'<>,.?/]).{8,}$",
-            message = "Password must be at least 8 characters long and contain uppercase, lowercase, digit, and special character"
-    )
     @Column(nullable = false)
     @NotBlank(message = "Please provide your password;")
     private String adminPassword;

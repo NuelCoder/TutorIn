@@ -30,10 +30,6 @@ public class PendingAdmin {
     @Email(message = "Please provide a valid email")
     private String adminEmail;
 
-    @Pattern(
-            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&.\\-_#])[A-Za-z0-9@$!%*&?.\\-_#]{8,}$",
-            message = "Password must be at least 8 characters long and contain uppercase, lowercase, digit, and special character"
-    )
     @Column(nullable = false)
     @NotBlank(message = "Please provide your password")
     private String adminPassword;
