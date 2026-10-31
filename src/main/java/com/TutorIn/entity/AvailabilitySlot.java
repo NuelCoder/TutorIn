@@ -9,7 +9,10 @@ import java.util.UUID;
 @Entity
 @Getter
 @Setter
-@Table(name = "availability_slots")
+@Table(name = "availability_slots", indexes = {
+        @Index(name = "idx_slot_tutor", columnList = "tutor_id"),
+        @Index(name = "idx_slot_start_time", columnList = "start_time")
+})
 @AllArgsConstructor
 @NoArgsConstructor
 public class AvailabilitySlot {

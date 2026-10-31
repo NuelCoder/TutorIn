@@ -57,8 +57,14 @@ public class SecurityConfig {
                                 "/api/v1/admins/verify-admin",
                                 "/api/v1/admins/resend-registration-otp"
                         ).permitAll()
+                        //5 Documentation
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
 
-                        // 5. EVERY other request requires a valid JWT
+                        // 6. EVERY other request requires a valid JWT
                         // (Roles are strictly enforced by @PreAuthorize in the Services/Controllers)
                         .anyRequest().authenticated()
                 )

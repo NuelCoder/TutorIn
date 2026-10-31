@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -58,6 +59,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccountPermanentlyDeletedException.class)
     public ResponseEntity<Map<String, Object>> handleDeletedAccount(AccountPermanentlyDeletedException ex) {
         return formatError("ACCOUNT_DELETED", ex.getMessage(), HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(org.springframework.security.authentication.BadCredentialsException.class)
+    public ResponseEntity<Map<String, Object>> handleSpringSecurityBadCredentials(org.springframework.security.authentication.BadCredentialsException ex) {
+        return formatError("UNAUTHORIZED", "Invalid email or password.", HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<Map<String, Object>> handleMissingRequestHeader(MissingRequestHeaderException ex) {
+        return formatError("UNAUTHORIZED", "Authentication token is missing or invalid.", HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

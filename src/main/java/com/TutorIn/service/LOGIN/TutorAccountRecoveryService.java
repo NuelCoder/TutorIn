@@ -55,7 +55,7 @@ public class TutorAccountRecoveryService {
 
     @Transactional
     public AuthTokens confirmRecovery(String email, String otp) {
-        boolean isValid = otpService.validateRecoveryOTP(otp,email);
+        boolean isValid = otpService.validateTutorRecoveryOTP(otp,email);
         if (!isValid) {
             throw new BadRequestException("Invalid or expired OTP");
         }

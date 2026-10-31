@@ -7,6 +7,10 @@ import com.TutorIn.security.JwtUtil;
 import com.TutorIn.service.ADMIN.AdminService;
 import com.TutorIn.service.PENDINGADMIN.PendingAdminService;
 import com.TutorIn.service.REFRESHTOKEN.RefreshTokenService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +24,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+@Tag(name = "Admin Management", description = "Endpoints for admin registration, profile management, and security")
 @RestController
 @RequestMapping("api/v1/admins")
 @RequiredArgsConstructor
@@ -38,6 +43,11 @@ public class AdminController {
     @Value("${app.cookie.same-site:Lax}")
     private String cookieSameSite;
 
+    @Operation(summary = "Register Admin", description = "Creates a pending admin profile and sends an OTP for verification.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Pending profile created and OTP sent"),
+            @ApiResponse(responseCode = "400", description = "Validation error or email already exists")
+    })
     @PostMapping("/register-admin")
     public ResponseEntity<Map<String,Object>> registerAdmin(@Valid @RequestBody PendingAdminDTO pendingAdminDTO){
         PendingAdmin pendingAdmin = pendingAdminService.registerAdmin(pendingAdminDTO);
@@ -56,6 +66,7 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Verify Admin Registration", description = "Validates the registration OTP, finalizes account creation, and returns a JWT token.")
     @PostMapping("/verify-admin")
     public ResponseEntity<Map<String, Object>> verifyAdmin(@Valid @RequestBody OtpVerificationRequest request) {
 
@@ -75,6 +86,7 @@ public class AdminController {
                 .body(response);
     }
 
+    @Operation(summary = "Get My Profile", description = "Retrieves the profile details of the currently authenticated admin.")
     @GetMapping("/me")
     public ResponseEntity<AdminProfileResponse> getAdmin(){
         String currentEmail = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -87,6 +99,7 @@ public class AdminController {
         return ResponseEntity.ok(adminProfileResponse);
     }
 
+    @Operation(summary = "Delete My Profile", description = "Soft deletes the authenticated admin's account and revokes all active sessions.")
     @DeleteMapping("/me")
     public ResponseEntity<Map<String,Object>> deleteAdmin(){
         String currentEmail = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -96,6 +109,7 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Update My Profile", description = "Updates specific details of the authenticated admin's profile.")
     @PutMapping("/me")
     public ResponseEntity<Map<String,Object>> updateAdmin(@Valid @RequestBody UpdateAdmin updateAdmin){
         String currentEmail = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -107,53 +121,44 @@ public class AdminController {
                 .build();
 
         Map<String,Object> response = new HashMap<>();
-
         response.put("message", "Your details have been updated");
-
         response.put("admin",adminProfileResponse);
 
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Resend Registration OTP", description = "Generates and sends a new OTP for a pending admin registration.")
     @PostMapping("/resend-registration-otp")
     public ResponseEntity<Map<String, Object>> resendAdminRegistrationOtp(@RequestBody Map<String, String> request) {
-
         adminService.resendAdminRegistrationOtp(request.get("adminEmail"));
-
         Map<String, Object> response = new HashMap<>();
         response.put("message", "A fresh OTP has been sent to your email.");
-
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Resend Password Change OTP", description = "Sends a new authorization OTP for changing the authenticated admin's password.")
     @PostMapping("/resend-password-change-otp")
     public ResponseEntity<Map<String, Object>> resendAdminPasswordChangeOtp() {
-
         String adminEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-
         adminService.resendAdminPasswordChangeOTP(adminEmail);
-
         Map<String, Object> response = new HashMap<>();
         response.put("message", "A fresh OTP has been sent to your email.");
-
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Initiate Password Change", description = "Verifies the old password and sends an authorization OTP to the admin's email.")
     @PostMapping("/change-admin-password/initiate")
     public ResponseEntity<Map<String, Object>> initiateAdminPasswordChange(@Valid @RequestBody PasswordChangeRequest request) {
-
         adminService.initiateAdminPasswordChange(request);
-
         Map<String, Object> response = new HashMap<>();
         response.put("message", "An OTP has been sent to your email to authorize this password change.");
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Verify Password Change", description = "Validates the authorization OTP and applies the new password to the admin's account.")
     @PostMapping("/change-admin-password/verify")
     public ResponseEntity<Map<String, Object>> verifyAdminPasswordChange(@Valid @RequestBody PasswordVerificationRequest request) {
-
         adminService.validateAdminPasswordChange(request);
-
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Your password has been successfully updated.");
         return ResponseEntity.ok(response);
@@ -161,13 +166,13 @@ public class AdminController {
 
     private ResponseCookie generateSecureCookie(String refreshToken) {
         long durationDays = EXPIRY_DAYS;
-        long maxAgeSeconds = durationDays * 24 * 60 * 60;
+        long maxAgeSeconds = durationDays * 24 * 60 * 60; // 🚨 Syntax fixed!
 
         return ResponseCookie.from("admin_refresh_token", refreshToken)
                 .httpOnly(true)
                 .secure(isCookieSecure)
                 .sameSite(cookieSameSite)
-                .path("/") // 🚨 Fixed the path to match the class mapping!
+                .path("/")
                 .maxAge(maxAgeSeconds)
                 .build();
     }

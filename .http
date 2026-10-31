@@ -1,45 +1,616 @@
-### Variables (Replace with the UUID printed in your console on startup)
-@tutorId = REPLACE_WITH_TUTOR_UUID_FROM_CONSOLE
+### Variables (Replace these before running. Tokens come from the login requests, ids from the create responses)
+@studentEmail = REPLACE_STUDENT_EMAIL
+@studentPassword = REPLACE_STUDENT_PASSWORD
+@tutorEmail = REPLACE_TUTOR_EMAIL
+@tutorPassword = REPLACE_TUTOR_PASSWORD
+@adminEmail = REPLACE_ADMIN_EMAIL
+@adminPassword = REPLACE_ADMIN_PASSWORD
+@newStudentEmail = new.student@example.com
+@newTutorEmail = new.tutor@example.com
+@newAdminEmail = new.admin@example.com
+@otp = REPLACE_WITH_OTP_FROM_EMAIL
+@studentToken = REPLACE_WITH_TOKEN_FROM_STUDENT_LOGIN
+@tutorToken = REPLACE_WITH_TOKEN_FROM_TUTOR_LOGIN
+@adminToken = REPLACE_WITH_TOKEN_FROM_ADMIN_LOGIN
+@tutorId = REPLACE_WITH_TUTOR_UUID_FROM_GET_TUTOR_PROFILE
+@subjectId = REPLACE_WITH_SUBJECT_UUID_FROM_CREATION
 @slotId = REPLACE_WITH_SLOT_UUID_FROM_CREATION
+@sessionId = REPLACE_WITH_SESSION_UUID_FROM_BOOKING
+@reportId = REPLACE_WITH_REPORT_UUID_FROM_CREATION
 
-### 1. Create a new slot (201 Created)
-POST http://localhost:8080/api/v1/slots
+### 1. Student login (200 { token })
+POST http://localhost:8080/api/v1/auth/user-login
 Content-Type: application/json
 
 {
-  "tutorId": "{{tutorId}}",
+  "username": "{{studentEmail}}",
+  "password": "{{studentPassword}}"
+}
+
+### 2. Tutor login (200 { token })
+POST http://localhost:8080/api/v1/auth/tutor-login
+Content-Type: application/json
+
+{
+  "username": "{{tutorEmail}}",
+  "password": "{{tutorPassword}}"
+}
+
+### 3. Admin login (200 { token })
+POST http://localhost:8080/api/v1/auth/admin-login
+Content-Type: application/json
+
+{
+  "username": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
+}
+
+### 4. Wrong password (401)
+POST http://localhost:8080/api/v1/auth/user-login
+Content-Type: application/json
+
+{
+  "username": "{{studentEmail}}",
+  "password": "wrong-password"
+}
+
+### 5. Refresh student token (200 { token })
+POST http://localhost:8080/api/v1/auth/user-refresh
+
+### 6. Refresh tutor token (200 { token })
+POST http://localhost:8080/api/v1/auth/tutor-refresh
+
+### 7. Refresh admin token (200 { token })
+POST http://localhost:8080/api/v1/auth/admin-refresh
+
+### 8. Student: send reset OTP (200)
+POST http://localhost:8080/api/v1/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "{{studentEmail}}"
+}
+
+### 9. Student: resend reset OTP (200)
+POST http://localhost:8080/api/v1/auth/resend-forgotten-password-otp
+Content-Type: application/json
+
+{
+  "email": "{{studentEmail}}"
+}
+
+### 10. Student: reset password with OTP (200)
+POST http://localhost:8080/api/v1/auth/reset-password
+Content-Type: application/json
+
+{
+  "email": "{{studentEmail}}",
+  "otp": "{{otp}}",
+  "newPassword": "NewPassw0rd!"
+}
+
+### 11. Tutor: send reset OTP (200)
+POST http://localhost:8080/api/v1/auth/forgot-tutor-password
+Content-Type: application/json
+
+{
+  "email": "{{tutorEmail}}"
+}
+
+### 12. Tutor: resend reset OTP (200)
+POST http://localhost:8080/api/v1/auth/resend-tutor-forgotten-password-otp
+Content-Type: application/json
+
+{
+  "email": "{{tutorEmail}}"
+}
+
+### 13. Tutor: reset password with OTP (200)
+POST http://localhost:8080/api/v1/auth/reset-tutor-password
+Content-Type: application/json
+
+{
+  "email": "{{tutorEmail}}",
+  "otp": "{{otp}}",
+  "newPassword": "NewPassw0rd!"
+}
+
+### 14. Admin: send reset OTP (200)
+POST http://localhost:8080/api/v1/auth/forgot-admin-password
+Content-Type: application/json
+
+{
+  "adminEmail": "{{adminEmail}}"
+}
+
+### 15. Admin: resend reset OTP (200)
+POST http://localhost:8080/api/v1/auth/resend-admin-forgotten-password-otp
+Content-Type: application/json
+
+{
+  "adminEmail": "{{adminEmail}}"
+}
+
+### 16. Admin: reset password with OTP (200)
+POST http://localhost:8080/api/v1/auth/reset-admin-password
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "otp": "{{otp}}",
+  "newPassword": "NewPassw0rd!"
+}
+
+### 17. Student: start recovery (200, same message whether or not the account exists)
+POST http://localhost:8080/api/v1/auth/recovery/initiate
+Content-Type: application/json
+
+{
+  "email": "{{studentEmail}}"
+}
+
+### 18. Student: confirm recovery (200 { token })
+POST http://localhost:8080/api/v1/auth/recovery/confirm
+Content-Type: application/json
+
+{
+  "email": "{{studentEmail}}",
+  "otp": "{{otp}}"
+}
+
+### 19. Student: resend recovery OTP (200)
+POST http://localhost:8080/api/v1/auth/recovery/resend-recovery-otp
+Content-Type: application/json
+
+{
+  "email": "{{studentEmail}}"
+}
+
+### 20. Tutor: start recovery (200)
+POST http://localhost:8080/api/v1/auth/recovery/tutor/initiate
+Content-Type: application/json
+
+{
+  "email": "{{tutorEmail}}"
+}
+
+### 21. Tutor: confirm recovery (200 { token })
+POST http://localhost:8080/api/v1/auth/recovery/tutor/confirm
+Content-Type: application/json
+
+{
+  "email": "{{tutorEmail}}",
+  "otp": "{{otp}}"
+}
+
+### 22. Tutor: resend recovery OTP (200)
+POST http://localhost:8080/api/v1/auth/recovery/resend-tutor-recovery-otp
+Content-Type: application/json
+
+{
+  "email": "{{tutorEmail}}"
+}
+
+### 23. Admin: start recovery (200)
+POST http://localhost:8080/api/v1/auth/recovery/admin/initiate
+Content-Type: application/json
+
+{
+  "adminEmail": "{{adminEmail}}"
+}
+
+### 24. Admin: confirm recovery (200 { token })
+POST http://localhost:8080/api/v1/auth/recovery/admin/confirm
+Content-Type: application/json
+
+{
+  "adminEmail": "{{adminEmail}}",
+  "otp": "{{otp}}"
+}
+
+### 25. Admin: resend recovery OTP (200)
+POST http://localhost:8080/api/v1/auth/recovery/resend-admin-recovery-otp
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}"
+}
+
+### 26. Register a student (200, account is pending until OTP is verified)
+POST http://localhost:8080/api/v1/users/register-user
+Content-Type: application/json
+
+{
+  "name": "Bola Ade",
+  "email": "{{newStudentEmail}}",
+  "password": "Passw0rd!",
+  "country": "Nigeria",
+  "gender": "Female"
+}
+
+### 27. Resend registration OTP (200)
+POST http://localhost:8080/api/v1/users/resend-registration-otp
+Content-Type: application/json
+
+{
+  "email": "{{newStudentEmail}}"
+}
+
+### 28. Verify OTP, create the account and log in (200 { message, token })
+POST http://localhost:8080/api/v1/users/verify-user
+Content-Type: application/json
+
+{
+  "email": "{{newStudentEmail}}",
+  "otp": "{{otp}}"
+}
+
+### 29. View my profile (200)
+GET http://localhost:8080/api/v1/users/me
+Authorization: Bearer {{studentToken}}
+
+### 30. Update my profile (200 { message, user })
+PUT http://localhost:8080/api/v1/users/me
+Authorization: Bearer {{studentToken}}
+Content-Type: application/json
+
+{
+  "name": "Bola Adeyemi",
+  "country": "Nigeria"
+}
+
+### 31. Change password, step 1: send OTP (200)
+POST http://localhost:8080/api/v1/users/change-password/initiate
+Authorization: Bearer {{studentToken}}
+Content-Type: application/json
+
+{
+  "email": "{{studentEmail}}",
+  "oldPassword": "{{studentPassword}}"
+}
+
+### 32. Resend the password-change OTP (200, no body)
+POST http://localhost:8080/api/v1/users/resend-password-change-otp
+Authorization: Bearer {{studentToken}}
+
+### 33. Change password, step 2: confirm with OTP (200)
+POST http://localhost:8080/api/v1/users/change-password/verify
+Authorization: Bearer {{studentToken}}
+Content-Type: application/json
+
+{
+  "email": "{{studentEmail}}",
+  "oldPassword": "{{studentPassword}}",
+  "newPassword": "NewPassw0rd!",
+  "otp": "{{otp}}"
+}
+
+### 34. No token (401)
+GET http://localhost:8080/api/v1/users/me
+
+### 35. Delete my account (200 { message }). Run last, it removes the account
+DELETE http://localhost:8080/api/v1/users/me
+Authorization: Bearer {{studentToken}}
+
+### 36. Register a tutor (200)
+POST http://localhost:8080/api/v1/tutors/register-tutor
+Content-Type: application/json
+
+{
+  "name": "Ada Obi",
+  "bio": "Maths and physics tutor",
+  "email": "{{newTutorEmail}}",
+  "password": "Passw0rd!",
+  "country": "Nigeria",
+  "gender": "Female"
+}
+
+### 37. Resend registration OTP (200)
+POST http://localhost:8080/api/v1/tutors/resend-registration-otp
+Content-Type: application/json
+
+{
+  "email": "{{newTutorEmail}}"
+}
+
+### 38. Verify OTP, create the account and log in (200 { message, token })
+POST http://localhost:8080/api/v1/tutors/verify-tutor
+Content-Type: application/json
+
+{
+  "email": "{{newTutorEmail}}",
+  "otp": "{{otp}}"
+}
+
+### 39. View my profile (200)
+GET http://localhost:8080/api/v1/tutors/me
+Authorization: Bearer {{tutorToken}}
+
+### 40. Update my profile (200 { message, tutor })
+PUT http://localhost:8080/api/v1/tutors/me
+Authorization: Bearer {{tutorToken}}
+Content-Type: application/json
+
+{
+  "name": "Ada Obi",
+  "bio": "Maths, physics and further maths",
+  "country": "Nigeria"
+}
+
+### 41. Change password, step 1: send OTP (200)
+POST http://localhost:8080/api/v1/tutors/change-password/initiate
+Authorization: Bearer {{tutorToken}}
+Content-Type: application/json
+
+{
+  "email": "{{tutorEmail}}",
+  "oldPassword": "{{tutorPassword}}"
+}
+
+### 42. Resend the password-change OTP (200, no body)
+POST http://localhost:8080/api/v1/tutors/resend-password-change-otp
+Authorization: Bearer {{tutorToken}}
+
+### 43. Change password, step 2: confirm with OTP (200)
+POST http://localhost:8080/api/v1/tutors/change-password/verify
+Authorization: Bearer {{tutorToken}}
+Content-Type: application/json
+
+{
+  "email": "{{tutorEmail}}",
+  "oldPassword": "{{tutorPassword}}",
+  "newPassword": "NewPassw0rd!",
+  "otp": "{{otp}}"
+}
+
+### 44. Delete my account (200 { message }). Run last
+DELETE http://localhost:8080/api/v1/tutors/me
+Authorization: Bearer {{tutorToken}}
+
+### 45. Create another admin (200, needs an admin token)
+POST http://localhost:8080/api/v1/admins/register-admin
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "adminName": "Second Admin",
+  "adminEmail": "{{newAdminEmail}}",
+  "adminPassword": "Passw0rd!"
+}
+
+### 46. Resend registration OTP (200)
+POST http://localhost:8080/api/v1/admins/resend-registration-otp
+Content-Type: application/json
+
+{
+  "adminEmail": "{{newAdminEmail}}"
+}
+
+### 47. Verify OTP, create the account and log in (200 { message, token })
+POST http://localhost:8080/api/v1/admins/verify-admin
+Content-Type: application/json
+
+{
+  "email": "{{newAdminEmail}}",
+  "otp": "{{otp}}"
+}
+
+### 48. View my profile (200)
+GET http://localhost:8080/api/v1/admins/me
+Authorization: Bearer {{adminToken}}
+
+### 49. Update my profile (200 { message, admin })
+PUT http://localhost:8080/api/v1/admins/me
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "adminName": "Main Admin"
+}
+
+### 50. Change password, step 1: send OTP (200)
+POST http://localhost:8080/api/v1/admins/change-admin-password/initiate
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "oldPassword": "{{adminPassword}}"
+}
+
+### 51. Resend the password-change OTP (200, no body)
+POST http://localhost:8080/api/v1/admins/resend-password-change-otp
+Authorization: Bearer {{adminToken}}
+
+### 52. Change password, step 2: confirm with OTP (200)
+POST http://localhost:8080/api/v1/admins/change-admin-password/verify
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "oldPassword": "{{adminPassword}}",
+  "newPassword": "NewPassw0rd!",
+  "otp": "{{otp}}"
+}
+
+### 53. Delete my account (200 { message }). Run last
+DELETE http://localhost:8080/api/v1/admins/me
+Authorization: Bearer {{adminToken}}
+
+### 54. Suspend a student (200)
+PUT http://localhost:8080/api/v1/admins/users/suspend?userEmail={{studentEmail}}
+Authorization: Bearer {{adminToken}}
+
+### 55. Suspended student tries to log in (403)
+POST http://localhost:8080/api/v1/auth/user-login
+Content-Type: application/json
+
+{
+  "username": "{{studentEmail}}",
+  "password": "{{studentPassword}}"
+}
+
+### 56. Reactivate a student (200)
+PUT http://localhost:8080/api/v1/admins/users/reactivate?userEmail={{studentEmail}}
+Authorization: Bearer {{adminToken}}
+
+### 57. Suspend a tutor (200)
+PUT http://localhost:8080/api/v1/admins/tutors/suspend?tutorEmail={{tutorEmail}}
+Authorization: Bearer {{adminToken}}
+
+### 58. Reactivate a tutor (200)
+PUT http://localhost:8080/api/v1/admins/tutors/reactivate?tutorEmail={{tutorEmail}}
+Authorization: Bearer {{adminToken}}
+
+### 59. Change a student's email (200)
+PUT http://localhost:8080/api/v1/admins/users/change-email?currentEmail={{studentEmail}}&newEmail=changed.student@example.com
+Authorization: Bearer {{adminToken}}
+
+### 60. Change a tutor's email (200)
+PUT http://localhost:8080/api/v1/admins/tutors/change-email?currentEmail={{tutorEmail}}&newEmail=changed.tutor@example.com
+Authorization: Bearer {{adminToken}}
+
+### 61. Student failover: registration OTP (200 { message, otp })
+POST http://localhost:8080/api/v1/admins/users/failover/registration-otp?userEmail={{newStudentEmail}}
+Authorization: Bearer {{adminToken}}
+
+### 62. Student failover: forgotten-password OTP (200 { message, otp })
+POST http://localhost:8080/api/v1/admins/users/failover/password-otp?userEmail={{studentEmail}}
+Authorization: Bearer {{adminToken}}
+
+### 63. Student failover: password-change OTP (200 { message, otp })
+POST http://localhost:8080/api/v1/admins/users/failover/password-change-otp?userEmail={{studentEmail}}
+Authorization: Bearer {{adminToken}}
+
+### 64. Tutor failover: registration OTP (200 { message, otp })
+POST http://localhost:8080/api/v1/admins/tutors/failover/registration-otp?tutorEmail={{newTutorEmail}}
+Authorization: Bearer {{adminToken}}
+
+### 65. Tutor failover: forgotten-password OTP (200 { message, otp })
+POST http://localhost:8080/api/v1/admins/tutors/failover/password-otp?tutorEmail={{tutorEmail}}
+Authorization: Bearer {{adminToken}}
+
+### 66. Tutor failover: password-change OTP (200 { message, otp })
+POST http://localhost:8080/api/v1/admins/tutors/failover/password-change-otp?tutorEmail={{tutorEmail}}
+Authorization: Bearer {{adminToken}}
+
+### 67. Audit logs (200)
+GET http://localhost:8080/api/v1/admins/audit-logs
+Authorization: Bearer {{adminToken}}
+
+### 68. Add a subject (201)
+POST http://localhost:8080/api/v1/subjects
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "Mathematics",
+  "description": "Algebra, geometry and calculus"
+}
+
+### 69. Duplicate title (409)
+POST http://localhost:8080/api/v1/subjects
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "Mathematics",
+  "description": "Duplicate"
+}
+
+### 70. List subjects (200)
+GET http://localhost:8080/api/v1/subjects
+Authorization: Bearer {{studentToken}}
+
+### 71. Update a subject (200)
+PUT http://localhost:8080/api/v1/subjects/{{subjectId}}
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "Mathematics",
+  "description": "Algebra, geometry, calculus and statistics"
+}
+
+### 72. Delete a subject (200 { message })
+DELETE http://localhost:8080/api/v1/subjects/{{subjectId}}
+Authorization: Bearer {{adminToken}}
+
+### 73. Tutor registers to teach a subject (200 { message })
+POST http://localhost:8080/api/v1/tutor-subjects
+Authorization: Bearer {{tutorToken}}
+Content-Type: application/json
+
+{
+  "subjectId": "{{subjectId}}",
+  "hourlyRate": 5000.0
+}
+
+### 74. Same subject again (409)
+POST http://localhost:8080/api/v1/tutor-subjects
+Authorization: Bearer {{tutorToken}}
+Content-Type: application/json
+
+{
+  "subjectId": "{{subjectId}}",
+  "hourlyRate": 5000.0
+}
+
+### 75. Find tutors by subject title (200)
+GET http://localhost:8080/api/v1/tutor-subjects/search?title=Mathematics
+Authorization: Bearer {{studentToken}}
+
+### 76. Create a slot. The tutor comes from the token (201)
+POST http://localhost:8080/api/v1/slots
+Authorization: Bearer {{tutorToken}}
+Content-Type: application/json
+
+{
   "startTime": "2026-12-01T10:00:00Z",
   "endTime": "2026-12-01T12:00:00Z"
 }
 
-### 2. Validation Error - End time before start time (400 Bad Request)
+### 77. End time before start time (400)
 POST http://localhost:8080/api/v1/slots
+Authorization: Bearer {{tutorToken}}
 Content-Type: application/json
 
 {
-  "tutorId": "{{tutorId}}",
   "startTime": "2026-12-01T14:00:00Z",
   "endTime": "2026-12-01T13:00:00Z"
 }
 
-### 3. Overlap Error - Same time (400 Bad Request)
+### 78. Overlaps slot 11.1 (409)
 POST http://localhost:8080/api/v1/slots
+Authorization: Bearer {{tutorToken}}
 Content-Type: application/json
 
 {
-  "tutorId": "{{tutorId}}",
   "startTime": "2026-12-01T10:30:00Z",
   "endTime": "2026-12-01T11:30:00Z"
 }
 
-### 4. Get all slots for a tutor (200 OK)
+### 79. No token (401)
+POST http://localhost:8080/api/v1/slots
+Content-Type: application/json
+
+{
+  "startTime": "2026-12-02T10:00:00Z",
+  "endTime": "2026-12-02T11:00:00Z"
+}
+
+### 80. List a tutor's slots (200)
 GET http://localhost:8080/api/v1/slots/tutor/{{tutorId}}
+Authorization: Bearer {{studentToken}}
 
-### 5. Get a specific slot (200 OK)
+### 81. Get one slot (200)
 GET http://localhost:8080/api/v1/slots/{{slotId}}
+Authorization: Bearer {{studentToken}}
 
-### 6. Update a slot (200 OK)
+### 82. Update a slot (200)
 PUT http://localhost:8080/api/v1/slots/{{slotId}}
+Authorization: Bearer {{tutorToken}}
 Content-Type: application/json
 
 {
@@ -47,8 +618,116 @@ Content-Type: application/json
   "endTime": "2026-12-01T16:00:00Z"
 }
 
-### 7. Delete a slot (204 No Content)
-DELETE http://localhost:8080/api/v1/slots/{{slotId}}
-
-### 8. Not Found Error (404 Not Found)
+### 83. Slot not found (404)
 GET http://localhost:8080/api/v1/slots/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{studentToken}}
+
+### 84. Invalid id (400)
+GET http://localhost:8080/api/v1/slots/not-a-uuid
+Authorization: Bearer {{studentToken}}
+
+### 85. Student books the slot (201)
+POST http://localhost:8080/api/v1/sessions
+Authorization: Bearer {{studentToken}}
+Content-Type: application/json
+
+{
+  "slotId": "{{slotId}}",
+  "subjectId": "{{subjectId}}"
+}
+
+### 86. Book the same slot again (409)
+POST http://localhost:8080/api/v1/sessions
+Authorization: Bearer {{studentToken}}
+Content-Type: application/json
+
+{
+  "slotId": "{{slotId}}",
+  "subjectId": "{{subjectId}}"
+}
+
+### 87. Edit a booked slot (409)
+PUT http://localhost:8080/api/v1/slots/{{slotId}}
+Authorization: Bearer {{tutorToken}}
+Content-Type: application/json
+
+{
+  "startTime": "2026-12-01T15:00:00Z",
+  "endTime": "2026-12-01T17:00:00Z"
+}
+
+### 88. Student: my upcoming sessions (200)
+GET http://localhost:8080/api/v1/sessions/student
+Authorization: Bearer {{studentToken}}
+
+### 89. Tutor: my upcoming sessions (200)
+GET http://localhost:8080/api/v1/sessions/tutor
+Authorization: Bearer {{tutorToken}}
+
+### 90. Cancel the session (200 { message }); the slot becomes free
+PUT http://localhost:8080/api/v1/sessions/{{sessionId}}/cancel
+Authorization: Bearer {{studentToken}}
+
+### 91. Cancel again (409)
+PUT http://localhost:8080/api/v1/sessions/{{sessionId}}/cancel
+Authorization: Bearer {{studentToken}}
+
+### 92. Delete the (now free) slot (204)
+DELETE http://localhost:8080/api/v1/slots/{{slotId}}
+Authorization: Bearer {{tutorToken}}
+
+### 93. Student reports a tutor (201)
+POST http://localhost:8080/api/v1/reports
+Authorization: Bearer {{studentToken}}
+Content-Type: application/json
+
+{
+  "reportedType": "TUTOR",
+  "reportedId": "{{tutorId}}",
+  "sessionId": "{{sessionId}}",
+  "reason": "Tutor did not show up"
+}
+
+### 94. List all reports (200)
+GET http://localhost:8080/api/v1/reports
+Authorization: Bearer {{adminToken}}
+
+### 95. Filter by status (200)
+GET http://localhost:8080/api/v1/reports/filter/status?status=OPEN
+Authorization: Bearer {{adminToken}}
+
+### 96. Reports against an account (200)
+GET http://localhost:8080/api/v1/reports/filter/accused?email={{tutorEmail}}
+Authorization: Bearer {{adminToken}}
+
+### 97. Reports filed by an account (200)
+GET http://localhost:8080/api/v1/reports/filter/reporter?email={{studentEmail}}
+Authorization: Bearer {{adminToken}}
+
+### 98. Resolve a report (200)
+PUT http://localhost:8080/api/v1/reports/{{reportId}}/resolve
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "RESOLVED",
+  "adminResolutionNotes": "Tutor warned"
+}
+
+### 99. Resolve again (409)
+PUT http://localhost:8080/api/v1/reports/{{reportId}}/resolve
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "RESOLVED",
+  "adminResolutionNotes": "Duplicate"
+}
+
+### 100. Log out (200 { message })
+POST http://localhost:8080/api/v1/auth/logout
+Authorization: Bearer {{studentToken}}
+
+### 101. Use the revoked token (401)
+GET http://localhost:8080/api/v1/users/me
+Authorization: Bearer {{studentToken}}

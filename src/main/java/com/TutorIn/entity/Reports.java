@@ -12,7 +12,11 @@ import java.util.UUID;
 @Entity
 @Getter
 @Setter
-@Table(name = "report")
+@Table(name = "reports", indexes = {
+        @Index(name = "idx_report_status", columnList = "status"),
+        @Index(name = "idx_report_reported_user", columnList = "reported_user_id"),
+        @Index(name = "idx_report_reported_tutor", columnList = "reported_tutor_id")
+})
 @AllArgsConstructor
 @NoArgsConstructor
 public class Reports {

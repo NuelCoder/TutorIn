@@ -2,15 +2,15 @@ package com.TutorIn.controller;
 
 import com.TutorIn.dto.*;
 import com.TutorIn.entity.PendingTutor;
-import com.TutorIn.entity.PendingUser;
 import com.TutorIn.entity.Tutor;
-import com.TutorIn.entity.User;
 import com.TutorIn.security.JwtUtil;
 import com.TutorIn.service.PENDINGTUTOR.PendingTutorService;
-import com.TutorIn.service.PENDINGUSER.PendingUserService;
 import com.TutorIn.service.REFRESHTOKEN.RefreshTokenService;
 import com.TutorIn.service.TUTOR.TutorService;
-import com.TutorIn.service.USER.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 
+@Tag(name = "Tutor Management", description = "Endpoints for tutor registration, profile management, and account security")
 @RestController
 @RequestMapping("api/v1/tutors")
 @RequiredArgsConstructor
@@ -41,7 +42,11 @@ public class TutorController {
     @Value("${app.cookie.same-site:Lax}")
     private String cookieSameSite;
 
-
+    @Operation(summary = "Register Tutor", description = "Creates a pending tutor profile and sends an OTP to their email for verification.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Pending profile created and OTP sent"),
+            @ApiResponse(responseCode = "400", description = "Validation error or email already in use")
+    })
     @PostMapping("/register-tutor")
     public ResponseEntity<Map<String,Object>> registerTutor(@Valid @RequestBody PendingTutorDTO pendingTutorDTO) {
         PendingTutor pendingTutor= pendingTutorService.registerTutor(pendingTutorDTO);
@@ -62,6 +67,7 @@ public class TutorController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Verify Tutor Registration", description = "Validates the OTP, finalizes the tutor account creation, and issues auth tokens.")
     @PostMapping("/verify-tutor")
     public ResponseEntity<Map<String, Object>> verifyTutor(@Valid @RequestBody OtpVerificationRequest request) {
 
@@ -81,6 +87,7 @@ public class TutorController {
                 .body(response);
     }
 
+    @Operation(summary = "Get My Profile", description = "Retrieves the profile details of the authenticated tutor.")
     @GetMapping("/me")
     public ResponseEntity<TutorProfileResponse> getTutor(){
         String currentEmail = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -99,6 +106,7 @@ public class TutorController {
         return ResponseEntity.ok(profileResponse);
     }
 
+    @Operation(summary = "Delete My Profile", description = "Soft deletes the authenticated tutor's account and revokes active sessions.")
     @DeleteMapping("/me")
     public ResponseEntity<Map<String,Object>> deleteTutor (){
 
@@ -113,6 +121,7 @@ public class TutorController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Update My Profile", description = "Updates specific details of the authenticated tutor's profile.")
     @PutMapping("/me")
     public ResponseEntity<Map<String,Object>> updateUser(@Valid @RequestBody UpdateTutor updateTutor){
         String currentEmail = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -137,6 +146,7 @@ public class TutorController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Initiate Password Change", description = "Verifies the current password and sends an authorization OTP to the tutor's email.")
     @PostMapping("/change-password/initiate")
     public ResponseEntity<Map<String, Object>> initiatePasswordChange(@Valid @RequestBody PasswordChangeRequest request) {
 
@@ -147,6 +157,7 @@ public class TutorController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Verify Password Change", description = "Validates the OTP and updates the tutor's password.")
     @PostMapping("/change-password/verify")
     public ResponseEntity<Map<String, Object>> verifyPasswordChange(@Valid @RequestBody PasswordVerificationRequest request) {
 
@@ -157,6 +168,7 @@ public class TutorController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Resend Registration OTP")
     @PostMapping("/resend-registration-otp")
     public ResponseEntity<Map<String, Object>> resendRegistrationOtp(@RequestBody Map<String, String> request) {
 
@@ -168,6 +180,7 @@ public class TutorController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Resend Password Change OTP")
     @PostMapping("/resend-password-change-otp")
     public ResponseEntity<Map<String, Object>> resendPasswordChangeOtp() {
 
@@ -183,9 +196,9 @@ public class TutorController {
 
     private ResponseCookie generateSecureCookie(String refreshToken) {
         long durationDays = EXPIRY_DAYS;
-        long maxAgeSeconds = durationDays * 24 * 60 * 60;
+        long maxAgeSeconds = durationDays * 24 * 60 * 60; // 🚨 Syntax fixed
 
-        return ResponseCookie.from("user_refresh_token", refreshToken)
+        return ResponseCookie.from("tutor_refresh_token", refreshToken) // 🚨 Fixed cookie name
                 .httpOnly(true)
                 .secure(isCookieSecure)
                 .sameSite(cookieSameSite)

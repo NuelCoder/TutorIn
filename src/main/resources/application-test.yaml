@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:tutorin_testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+
+jwt:
+  secret: "ThisIsADummySecretKeyForTestingPurposesOnlyThatIsVeryLong"
+  expiration: 86400000
+
+EXPIRY_DAYS: 1
+
+ADMIN_SEED_PASSWORD: Password123!
+
+app:
+  cookie:
+    secure: false
+    same-site: Lax
+
+mail:
+  host: localhost
+  port: 1025
